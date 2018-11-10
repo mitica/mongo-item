@@ -1,0 +1,10 @@
+
+.DS_Store
+.env*
+node_modules
+*.log
+*.tgz
+lib
+types
+dest
+package-lock.json

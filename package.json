@@ -1,0 +1,49 @@
+{
+  "name": "mongo-item",
+  "version": "0.1.0",
+  "description": "Simple MongoDB DAO",
+  "main": "./dest/index.js",
+  "types": "./dest/index.d.ts",
+  "scripts": {
+    "pretest": "npm run clean && npm run tsc",
+    "test": "ava --no-cache --verbose dest/**/*.test.js",
+    "posttest": "npm run clean-test-code",
+    "tsc": "tsc",
+    "tscw": "tsc -w",
+    "preversion": "npm run tsc",
+    "postversion": "git push --follow-tags",
+    "prepublishOnly": "npm run tsc && npm run clean-test-code",
+    "clean": "rimraf ./dest",
+    "clean-test-code": "rimraf ./dest/**/*.test.js"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mitica/mongo-item.git"
+  },
+  "keywords": [
+    "mongo-item",
+    "dao",
+    "mongodb",
+    "model",
+    "dynamo-model"
+  ],
+  "author": "Dumitru Cantea",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mitica/mongo-item/issues"
+  },
+  "homepage": "https://github.com/Mitica/mongo-item#readme",
+  "devDependencies": {
+    "@types/mongodb": "^3.1.14",
+    "@types/node": "10.12.5",
+    "ava": "^0.25.0",
+    "rimraf": "^2.6.2",
+    "typescript": "3.1.6"
+  },
+  "dependencies": {
+    "mongodb": "^3.1.9"
+  }
+}
