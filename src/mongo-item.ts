@@ -1,34 +1,12 @@
 
 import { Db, Collection, FindOneOptions } from 'mongodb';
+import { MongoUpdateData, MongoFindParams, MongoWhereParams, MongoAccessOptions, BaseEntity, createMongoSortObject, createMongoUnsetObject, createMongoProjectionObject, MongoFindOneParams } from './utils';
 
-export interface BaseEntity {
-    id: string
-}
 
-export interface RepositoryAccessOptions<T extends BaseEntity> {
-    /**
-     * Entity fields to return
-     */
-    fields?: (keyof T)[]
-}
-
-export interface RepositoryUpdateData<T extends BaseEntity> {
-    /**
-     * Entity id to updated
-     */
-    id: string
-    /**
-     * Entity fields to updated
-     */
-    set?: Partial<T>
-    /**
-     * Entity fields to delete
-     */
-    delete?: (keyof T)[]
-}
 
 export class MongoItem<T extends BaseEntity>{
     protected collection: Collection<T>;
+
     constructor(private db: Db, private tableName: string) {
         this.collection = db.collection(tableName);
     }
@@ -48,27 +26,20 @@ export class MongoItem<T extends BaseEntity>{
         throw new Error(`Data not inserted!`);
     }
 
-    async update(data: RepositoryUpdateData<T>): Promise<T> {
+    async update(data: MongoUpdateData, options?: MongoAccessOptions): Promise<T> {
         data = this.beforeUpdate(data);
         const updateObj: any = {};
-        if (data.set) {
+        if (data.set && Object.keys(data.set).length) {
             updateObj.$set = data.set;
         }
-        if (data.delete) {
-            updateObj.$unset = this.fillObjectFields(data.delete as string[], "");
-        }
 
-        if (updateObj.$set && Object.keys(updateObj.$set).length === 0) {
-            delete updateObj.$set;
-        }
-
-        if (updateObj.$unset && Object.keys(updateObj.$unset).length === 0) {
-            delete updateObj.$unset;
+        if (data.delete && data.delete.length) {
+            updateObj.$unset = createMongoUnsetObject(data.delete);
         }
 
         await this.collection.updateOne({ _id: data.id }, updateObj, { upsert: false });
 
-        const entity = await this.getById(data.id);
+        const entity = await this.getById(data.id, options);
 
         if (entity) {
             return entity;
@@ -76,10 +47,10 @@ export class MongoItem<T extends BaseEntity>{
         throw new Error(`Not found entity with id=${data.id}`);
     }
 
-    async getById(id: string, options?: RepositoryAccessOptions<T>): Promise<T | null> {
+    async getById(id: string, options?: MongoAccessOptions): Promise<T | null> {
         const mongoOptions: FindOneOptions = {};
         if (options && options.fields && options.fields.length) {
-            mongoOptions.projection = this.fillObjectFields(options.fields as string[], 1, true);
+            mongoOptions.projection = createMongoProjectionObject(options.fields);
         }
         const result = await this.collection.findOne({ _id: id }, mongoOptions);
         if (result) {
@@ -88,12 +59,12 @@ export class MongoItem<T extends BaseEntity>{
         return null;
     }
 
-    async getByIds(ids: string[], options?: RepositoryAccessOptions<T>): Promise<T[]> {
+    async getByIds(ids: string[], options?: MongoAccessOptions): Promise<T[]> {
         const mongoOptions: FindOneOptions = {
             limit: ids.length,
         };
         if (options && options.fields && options.fields.length) {
-            mongoOptions.projection = this.fillObjectFields(options.fields as string[], 1, true);
+            mongoOptions.projection = createMongoProjectionObject(options.fields);
         }
         const result = await this.collection.find({ _id: { $in: ids } }, mongoOptions).toArray();
 
@@ -104,6 +75,49 @@ export class MongoItem<T extends BaseEntity>{
         const result = await this.collection.findOne({ _id: id }, { limit: 1, projection: { _id: 1 } });
 
         return !!result;
+    }
+
+    async count(params: MongoWhereParams): Promise<number> {
+        return await this.collection.count(params);
+    }
+
+    async find(params: MongoFindParams): Promise<T[]> {
+        const mongoOptions: FindOneOptions = {};
+
+        if (params.fields && params.fields.length) {
+            mongoOptions.projection = createMongoProjectionObject(params.fields);
+        }
+        if (params.limit) {
+            mongoOptions.limit = params.limit;
+        }
+
+        let cursor = this.collection.find(params.where, mongoOptions)
+        if (params.offset) {
+            cursor = cursor.skip(params.offset);
+        }
+        if (params.sort) {
+            cursor = cursor.sort(createMongoSortObject(params.sort));
+        }
+
+        const result = cursor.toArray()
+            .then(items => items && items.map(item => this.convertFromMongoDoc(item)) || []);
+
+        return result;
+    }
+
+    async findOne(params: MongoFindOneParams): Promise<T | null> {
+        const mongoOptions: FindOneOptions = {};
+
+        if (params.fields && params.fields.length) {
+            mongoOptions.projection = createMongoProjectionObject(params.fields);
+        }
+
+        const item = this.collection.findOne(params.where, mongoOptions);
+
+        if (item) {
+            return this.convertFromMongoDoc(item);
+        }
+        return null;
     }
 
     async deleteStorage() {
@@ -118,7 +132,7 @@ export class MongoItem<T extends BaseEntity>{
         return data;
     }
 
-    protected beforeUpdate(data: RepositoryUpdateData<T>) {
+    protected beforeUpdate(data: MongoUpdateData) {
         return data;
     }
 
@@ -136,19 +150,5 @@ export class MongoItem<T extends BaseEntity>{
         delete doc._id;
 
         return data;
-    }
-
-    protected fillObjectFields(fields: string[], value: number | boolean | "", ensureId?: boolean): Object {
-        const obj: any = {};
-        fields.forEach(field => {
-            const prop = field === 'id' ? '_id' : field;
-            obj[prop] = value;
-        })
-
-        if (ensureId) {
-            obj['_id'] = value;
-        }
-
-        return obj;
     }
 }
