@@ -11,9 +11,14 @@ export class MongoItem<T extends BaseEntity>{
         this.collection = db.collection(tableName);
     }
 
-    async delete(id: string): Promise<boolean> {
+    async deleteOne(id: string): Promise<boolean> {
         const result = await this.collection.deleteOne({ _id: id });
         return result.deletedCount === 1;
+    }
+
+    async deleteMany(params: MongoWhereParams): Promise<number> {
+        const result = await this.collection.deleteMany(params);
+        return result.deletedCount || 0;
     }
 
     async create(data: T): Promise<T> {
