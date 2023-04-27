@@ -103,7 +103,7 @@ export class MongoItem<T extends BaseEntity> {
   }
 
   async count(params: MongoWhereParams): Promise<number> {
-    return this.collection.estimatedDocumentCount(params);
+    return this.collection.countDocuments(params as never);
   }
 
   async find(params: MongoFindParams): Promise<T[]> {
