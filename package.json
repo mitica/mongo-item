@@ -1,20 +1,20 @@
 {
   "name": "mongo-item",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Simple MongoDB DAO",
-  "main": "./dest/index.js",
-  "types": "./dest/index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "pretest": "npm run clean && npm run tsc",
-    "test": "ava --no-cache --verbose dest/**/*.test.js",
+    "test": "ava --no-cache --verbose lib/**/*.test.js",
     "posttest": "npm run clean-test-code",
     "tsc": "tsc",
     "tscw": "tsc -w",
     "preversion": "npm run tsc",
     "postversion": "git push --follow-tags",
     "prepublishOnly": "npm run tsc && npm run clean-test-code",
-    "clean": "rimraf ./dest",
-    "clean-test-code": "rimraf ./dest/**/*.test.js"
+    "clean": "rimraf ./lib",
+    "clean-test-code": "rimraf ./lib/**/*.test.js"
   },
   "engines": {
     "node": ">=8.0.0"
