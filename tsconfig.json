@@ -1,26 +1,33 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "outDir": "dest",
-        "rootDir": "./src",
-        "target": "es2017",
-        "noImplicitAny": true,
-        "removeComments": true,
-        "preserveConstEnums": true,
-        "sourceMap": false,
-        "moduleResolution": "node",
-        "declaration": true,
-        "declarationDir": "dest",
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "allowJs": false,
-        "strict": true
-    },
-    "formatCodeOptions": {
-        "indentSize": 2,
-        "tabSize": 2
-    },
-    "include": [
-        "src/**/*.ts"
-    ]
+  "compilerOptions": {
+    "incremental": true,
+    "module": "CommonJS",
+    "outDir": "./lib",
+    "baseUrl": "./src",
+    "target": "es2018",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "moduleResolution": "node",
+    "declaration": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "allowUnreachableCode": false,
+    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": false,
+    "allowJs": false,
+    "esModuleInterop": true,
+    "lib": ["es2021", "esnext.asynciterable", "DOM"],
+    "forceConsistentCasingInFileNames": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strict": true
+  },
+  "typeRoots": ["node_modules/@types", "node_modules/types", "src/typings"],
+  "exclude": ["node_modules"],
+  "include": ["./src"]
 }
